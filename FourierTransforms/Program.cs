@@ -7,6 +7,7 @@ using System.Numerics;
 using System.IO;
 using AbrahamOdamteng.CSV;
 using System.Threading;
+using System.Diagnostics;
 
 namespace AbrahamOdamteng
 {
@@ -23,27 +24,32 @@ namespace AbrahamOdamteng
             //========================================================================
             //Control Options!!!
 
-            var algorithm = Algorithm.FFT;//USE THIS TO CONTROL WHICH ALGORITHM IS USED.
+            var algorithm = Algorithm.DFT;//USE THIS TO CONTROL WHICH ALGORITHM IS USED.
             ZeroPadDFT = false; // Should the DFT be padded with zeros up to the nearest power of two.
 
-            var inputDirectoryPath  = @"C:\Users\abraham\Downloads\interviewTest";
+            var inputDirectoryPath  = @".\InputFiles\";
 
-            var filenamePattern = "wave00*.csv";
+            var filenamePattern = "wave*.csv";
 
-            var outputDFTFolderPath = @"C:\Users\abraham\Desktop\DFTs";
-            var outputFFTFolderPath = @"C:\Users\abraham\Desktop\FFTs";
+            var outputDFTFolderPath = @".\OutputFiles\DFTs\";
+            var outputFFTFolderPath = @".\OutputFiles\FFTs\";
 
             if (ZeroPadDFT)
             {
-                outputDFTFolderPath = @"C:\Users\abraham\Desktop\DFTZP";
+                outputDFTFolderPath = @".\OutputFiles\DFTZP\";
             }
 
-            var answerDFTAnswer = Path.Combine(outputDFTFolderPath, "Answer_DFT.CSV");
-            var answerFFTAnswer = Path.Combine(outputFFTFolderPath, "Answer_FFT.CSV");
+            Directory.CreateDirectory(outputDFTFolderPath);
+            Directory.CreateDirectory(outputFFTFolderPath);
+            Directory.CreateDirectory(inputDirectoryPath);
+            GenerateWaveForms(inputDirectoryPath);
+
+            var answerDFTPath = Path.Combine(outputDFTFolderPath, "Answer_DFT.CSV");
+            var answerFFTPath = Path.Combine(outputFFTFolderPath, "Answer_FFT.CSV");
 
             if (ZeroPadDFT)
             {
-                answerDFTAnswer = Path.Combine(outputDFTFolderPath, "Answer_DFTZP.CSV");
+                answerDFTPath = Path.Combine(outputDFTFolderPath, "Answer_DFTZP.CSV");
             }
             //========================================================================
 
@@ -52,19 +58,32 @@ namespace AbrahamOdamteng
             switch (algorithm)
             {
                 case Algorithm.DFT:
-                    prog.ParallelProcessWaveForms(inputDirectoryPath, filenamePattern, outputDFTFolderPath, answerDFTAnswer, DFT);
+                    prog.ParallelProcessWaveForms(inputDirectoryPath, filenamePattern, outputDFTFolderPath, answerDFTPath, DFT);
                     break;
                 case Algorithm.FFT:
-                    prog.ParallelProcessWaveForms(inputDirectoryPath, filenamePattern, outputFFTFolderPath, answerFFTAnswer, FFT);
+                    prog.ParallelProcessWaveForms(inputDirectoryPath, filenamePattern, outputFFTFolderPath, answerFFTPath, FFT);
                     break;
                 case Algorithm.Both:
-                    prog.ParallelProcessWaveForms(inputDirectoryPath, filenamePattern, outputFFTFolderPath, answerFFTAnswer, FFT);
-                    prog.ParallelProcessWaveForms(inputDirectoryPath, filenamePattern, outputDFTFolderPath, answerDFTAnswer, DFT);
+                    prog.ParallelProcessWaveForms(inputDirectoryPath, filenamePattern, outputFFTFolderPath, answerFFTPath, FFT);
+                    prog.ParallelProcessWaveForms(inputDirectoryPath, filenamePattern, outputDFTFolderPath, answerDFTPath, DFT);
                     break;
             }
 
             Console.WriteLine("Finished press any key to close");
             Console.Read();
+        }
+
+        static void GenerateWaveForms(string workingDirectory)
+        {
+            var item = Environment.CurrentDirectory;
+            var fileName = Path.Combine(Environment.CurrentDirectory, @"WaveFormGenerator\WaveGen.exe");
+            var info = new ProcessStartInfo()
+            {
+                WorkingDirectory = workingDirectory,
+                FileName = fileName
+            };
+            var proc =  Process.Start(info);
+            proc.WaitForExit();
         }
 
 
